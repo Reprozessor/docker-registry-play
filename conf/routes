@@ -1,0 +1,3 @@
+GET /                               controllers.RootController.index()
+GET /v1/_ping                       controllers.RegistryController._ping()
+GET /v1/repositories/*repo/images   controllers.RegistryController.images(repo)
