@@ -17,5 +17,38 @@ object RegistryController extends Controller {
   def images(repo: String) = Action {
     Ok(Json.toJson("a"))
   }
+
+  def putImages(repo: String) = Action {
+    // TODO
+    Status(204)("")
+  }
+
+  def putRepo(repo: String) = Action {
+    Ok(Json.toJson("PUTPUT")).withHeaders("X-Docker-Token" -> "mytok").withHeaders("X-Docker-Endpoints" -> "localhost:9000")
+  }
+
+  def getImageJson(image: String) = Action {
+    NotFound("bla")
+  }
+
+  def putImageJson(image: String) = Action {
+    // TODO: write JSON file
+    Ok(Json.toJson("OK"))
+  }
+
+  def putImageLayer(image: String) = Action {
+    // TODO: write binary layer file
+    Ok(Json.toJson("OK"))
+  }
+
+  def putImageChecksum(image: String) = Action {
+    // TODO: do something
+    Ok(Json.toJson("OK"))
+  }
+
+  def putTag(repo: String, tag:String) = Action {
+    // TODO: save tag
+    Ok(Json.toJson("OK"))
+  }
 }
 
