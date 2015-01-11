@@ -21,7 +21,7 @@ TwirlKeys.templateFormats += ("json" -> "com.gilt.play.json.templates.JsonFormat
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 coverageExcludedPackages := "<empty>;Reverse.*;views.json..*"
-coverageMinimum := 75
+coverageMinimum := 30
 coverageFailOnMinimum := true
 
 
