@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/zalando/docker-registry-play.svg
+    :target: https://travis-ci.org/zalando/docker-registry-play
+
 ====================
 Play Docker Registry
 ====================
