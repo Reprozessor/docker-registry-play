@@ -1,4 +1,4 @@
-GET /                                controllers.RootController.index()
+GET /                                controllers.RegistryController.root()
 GET /v1/_ping                        controllers.RegistryController._ping()
 GET /v1/repositories/*repo/images    controllers.RegistryController.images(repo)
 PUT /v1/repositories/*repo/images    controllers.RegistryController.putImages(repo)

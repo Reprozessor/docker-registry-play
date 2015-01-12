@@ -6,6 +6,11 @@ import controllers.DockerHeaders._
 
 class RegistryControllerTest extends Specification {
   "RegistryController" should {
+    "return server name" in new WithApplication {
+      val res = route(FakeRequest(GET, "/")).get
+
+      status(res) must_== 200
+    }
     "respond to _ping" in new WithApplication {
       val res = route(FakeRequest(GET, "/v1/_ping")).get
 

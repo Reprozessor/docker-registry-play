@@ -1,4 +1,4 @@
-name := "sprocrest"
+name := "docker-registry-play"
 
 scalaVersion := "2.11.4"
 scalacOptions ++= Seq("-feature", "-deprecation")
