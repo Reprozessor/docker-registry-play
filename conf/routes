@@ -9,3 +9,4 @@ GET /v1/images/:image/json           controllers.RegistryController.getImageJson
 PUT /v1/images/:image/json           controllers.RegistryController.putImageJson(image)
 PUT /v1/images/:image/layer          controllers.RegistryController.putImageLayer(image)
 PUT /v1/images/:image/checksum       controllers.RegistryController.putImageChecksum(image)
+GET /v1/images/:image/ancestry       controllers.RegistryController.getImageAncestry(image)

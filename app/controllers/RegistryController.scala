@@ -27,6 +27,7 @@ object RegistryController extends Controller {
   val dataPath = Paths.get("data")
   val imagesPath = dataPath.resolve("images")
   val repoPath = dataPath.resolve("repositories")
+  val JSON_SUFFIX = ".json"
 
   def root() = Action {
     Ok(Json.toJson("Docker Registry"))
@@ -38,18 +39,18 @@ object RegistryController extends Controller {
 
   def images(repo: String) = Action {
     Files.createDirectories(imagesPath)
-    val files = imagesPath.toFile.list().filter(_.endsWith(".json"))
-    Ok(Json.toJson(files.map( (fn) => {Json.obj("id" -> fn,  "checksum" -> "foobar")} )))
+    val files = imagesPath.toFile.list().filter(_.endsWith(JSON_SUFFIX))
+    Ok(Json.toJson(files.map( (fn) => {Json.obj("id" -> fn.substring(0, fn.length - JSON_SUFFIX.length),  "checksum" -> "foobar")} )))
   }
 
   def getTags(repo: String) = Action {
     val tagsPath = repoPath.resolve(s"${repo}/tags")
     if (Files.exists(tagsPath)) {
-      val files = tagsPath.toFile.list().filter(_.endsWith(".json"))
+      val files = tagsPath.toFile.list().filter(_.endsWith(JSON_SUFFIX))
       Ok(Json.toJson(files.map( (fn) => {
           val contents = Files.readAllLines(tagsPath.resolve(fn), StandardCharsets.UTF_8).asScala.mkString
-          Json.obj(fn -> Json.parse(contents))
-        } )))
+          Json.obj(fn.substring(0, fn.length - JSON_SUFFIX.length) -> Json.parse(contents))
+        } ).reduce(_ ++ _)))
     } else {
       NotFound(Json.toJson(s"Repository ${repo} does not exist"))
     }
@@ -76,6 +77,36 @@ object RegistryController extends Controller {
       Ok(Json.parse(contents))
     } else {
       NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
+    }
+  }
+
+  def getAncestry(image: String): Option[List[String]] = {
+    var ancestry = List(image)
+    var cur = image
+    while (true) {
+      val imagePath = imagesPath.resolve(s"${cur}.json")
+      if (!Files.exists(imagePath)) {
+        return None
+      }
+      val contents = Files.readAllLines(imagePath, StandardCharsets.UTF_8).asScala.mkString
+      val data = Json.parse(contents)
+      val opt = (data \ "parent").asOpt[String]
+      if (opt.isEmpty) {
+        return Some(ancestry)
+      } else {
+        cur = opt.get
+        ancestry ++= List(cur)
+      }
+    }
+    return Some(ancestry)
+  }
+
+  def getImageAncestry(image: String) = Action {
+    val ancestry = getAncestry(image)
+    if (ancestry.isEmpty) {
+      NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
+    } else {
+      Ok(Json.toJson(ancestry))
     }
   }
 

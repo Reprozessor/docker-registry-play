@@ -20,3 +20,10 @@ Try to push a Docker image (on another console):
     $ docker pull busybox
     $ docker tag busybox localhost:9000/test/busybox:1.0
     $ docker push localhost:9000/test/busybox:1.0
+
+Try to pull the same Docker image again (will not do anything as you already have it):
+
+.. code-block:: bash
+
+    $ docker pull localhost:9000/test/busybox:1.0
+
