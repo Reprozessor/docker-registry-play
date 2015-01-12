@@ -19,6 +19,9 @@ object DockerHeaders {
 }
 import DockerHeaders._
 
+case class ImgData(id: String, checksum: String)
+//implicit val imgDataWrites = new Writes[ImgData]
+
 object RegistryController extends Controller {
 
   val dataPath = Paths.get("data")
@@ -35,8 +38,21 @@ object RegistryController extends Controller {
 
   def images(repo: String) = Action {
     Files.createDirectories(imagesPath)
-    val files = imagesPath.toFile.list()
-    Ok(Json.toJson(files))
+    val files = imagesPath.toFile.list().filter(_.endsWith(".json"))
+    Ok(Json.toJson(files.map( (fn) => {Json.obj("id" -> fn,  "checksum" -> "foobar")} )))
+  }
+
+  def getTags(repo: String) = Action {
+    val tagsPath = repoPath.resolve(s"${repo}/tags")
+    if (Files.exists(tagsPath)) {
+      val files = tagsPath.toFile.list().filter(_.endsWith(".json"))
+      Ok(Json.toJson(files.map( (fn) => {
+          val contents = Files.readAllLines(tagsPath.resolve(fn), StandardCharsets.UTF_8).asScala.mkString
+          Json.obj(fn -> Json.parse(contents))
+        } )))
+    } else {
+      NotFound(Json.toJson(s"Repository ${repo} does not exist"))
+    }
   }
 
   def putImages(repo: String) = Action {
