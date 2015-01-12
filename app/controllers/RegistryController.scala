@@ -25,12 +25,16 @@ object RegistryController extends Controller {
   val imagesPath = dataPath.resolve("images")
   val repoPath = dataPath.resolve("repositories")
 
+  def root() = Action {
+    Ok(Json.toJson("Docker Registry"))
+  }
+
   def _ping() = Action {
     Ok(Json.toJson(true)).withHeaders(REGISTRY_VERSION -> "0.6.3")
   }
 
   def images(repo: String) = Action {
-    asJson { NotImplemented }
+    NotImplemented
   }
 
   def putImages(repo: String) = Action {
