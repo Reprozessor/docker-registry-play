@@ -34,7 +34,9 @@ object RegistryController extends Controller {
   }
 
   def images(repo: String) = Action {
-    NotImplemented
+    Files.createDirectories(imagesPath)
+    val files = imagesPath.toFile.list()
+    Ok(Json.toJson(files))
   }
 
   def putImages(repo: String) = Action {

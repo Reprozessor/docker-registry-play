@@ -28,6 +28,10 @@ class RegistryControllerTest extends Specification {
       val res = route(FakeRequest(GET, "/v1/images/NONEXISTING/json")).get
       status(res) must_== 404
     }
+    "get list of images" in new WithApplication {
+      val res = route(FakeRequest(GET, "/v1/repositories/some/repo/images")).get
+      status(res) must_== 200
+    }
   }
 
 }
