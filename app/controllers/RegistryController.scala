@@ -95,7 +95,7 @@ object RegistryController extends Controller {
         return Some(ancestry)
       } else {
         cur = opt.get
-        ancestry ++= List(cur)
+        ancestry :+= cur
       }
     }
     return Some(ancestry)
