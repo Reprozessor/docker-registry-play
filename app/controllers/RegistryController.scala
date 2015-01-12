@@ -22,22 +22,11 @@ import DockerHeaders._
 object RegistryController extends Controller {
 
   val dataPath = Paths.get("data")
-
-  private def asJson(f: => Result): Result = (f: Result).as("application/json")
-
-
-  def root() = Action {
-    asJson {
-      Ok(Json.toJson("docker-registry-play server"))
-    }
-  }
+  val imagesPath = dataPath.resolve("images")
+  val repoPath = dataPath.resolve("repositories")
 
   def _ping() = Action {
-    asJson {
-      Ok(Json.toJson(true))
-        .withHeaders(REGISTRY_VERSION -> "0.6.3")
-        .withHeaders(REGISTRY_STANDALONE -> "True")
-    }
+    Ok(Json.toJson(true)).withHeaders(REGISTRY_VERSION -> "0.6.3")
   }
 
   def images(repo: String) = Action {
@@ -45,61 +34,54 @@ object RegistryController extends Controller {
   }
 
   def putImages(repo: String) = Action {
-    asJson { NotImplemented }
+    // this is the final call from Docker client when pushing an image
+    // Docker client expects HTTP status code 204 (No Content) instead of 200 here!
+    Status(204)("")
   }
 
   def putRepo(repo: String) = Action {request =>
     val host: String = request.headers.get("Host").getOrElse("")
-    asJson {
       Ok(Json.toJson("PUTPUT"))
-        .withHeaders(TOKEN -> "mytok")
-        .withHeaders(ENDPOINTS -> host)
-    }
+      .withHeaders(TOKEN -> "mytok")
+      .withHeaders(ENDPOINTS -> host)
   }
 
   def getImageJson(image: String) = Action {
-    asJson {
-      val imagePath: Path = dataPath.resolve(s"${image}.json")
-      val layerPath = dataPath.resolve(s"${image}.layer")
-      if (Files.exists(imagePath) && Files.exists(layerPath)) {
-        val contents = Files.readAllLines(imagePath, StandardCharsets.UTF_8).asScala.mkString
-        Ok(Json.parse(contents))
-      } else {
-        NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
-      }
+    val imagePath = imagesPath.resolve(s"${image}.json")
+    val layerPath = imagesPath.resolve(s"${image}.layer")
+    if (Files.exists(imagePath) && Files.exists(layerPath)) {
+      val contents = Files.readAllLines(imagePath, StandardCharsets.UTF_8).asScala.mkString
+      Ok(Json.parse(contents))
+    } else {
+      NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
     }
   }
 
   def putImageJson(image: String) = Action(BodyParsers.parse.json) { request =>
-    asJson {
-      Files.createDirectories(dataPath)
-      val contents: String = Json.stringify(request.body)
+    Files.createDirectories(imagesPath)
+    val contents: String = Json.stringify(request.body)
 
-      Files.write(dataPath.resolve(s"${image}.json"), contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
-      Ok(Json.toJson("OK"))
-    }
+    Files.write(imagesPath.resolve(s"${image}.json"), contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
+    Ok(Json.toJson("OK"))
   }
 
   def putImageLayer(image: String) = Action(BodyParsers.parse.temporaryFile) { request =>
-    asJson {
-      val layerPath = dataPath.resolve(s"${image}.layer")
-      val bodyData = request.body.moveTo(layerPath.toFile)
-      Ok(Json.toJson("OK"))
-    }
+    val layerPath = imagesPath.resolve(s"${image}.layer")
+    val bodyData = request.body.moveTo(layerPath.toFile)
+    Ok(Json.toJson("OK"))
   }
 
   def putImageChecksum(image: String) = Action {
-    asJson {
-      NotImplemented
-      // TODO: do something
-    }
+    // TODO: do something
+    Ok(Json.toJson("OK"))
   }
 
-  def putTag(repo: String, tag:String) = Action {
-    asJson {
-      NotImplemented
-      // TODO: save tag
-    }
+  def putTag(repo: String, tag:String) = Action(BodyParsers.parse.json) { request =>
+    val tagPath = repoPath.resolve(s"${repo}/tags/${tag}.json")
+    Files.createDirectories(tagPath.getParent)
+    val contents: String = Json.stringify(request.body)
+    Files.write(tagPath, contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
+    Ok(Json.toJson("OK"))
   }
 }
 
