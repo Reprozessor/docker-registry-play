@@ -124,6 +124,15 @@ object RegistryController extends Controller {
     Ok(Json.toJson("OK"))
   }
 
+  def getImageLayer(image: String) = Action {
+    val layerPath = imagesPath.resolve(s"${image}.layer")
+    if (Files.exists(layerPath)) {
+      Ok.sendFile(layerPath.toFile)
+    } else {
+      NotFound("Layer not found")
+    }
+  }
+
   def putImageChecksum(image: String) = Action {
     // TODO: do something
     Ok(Json.toJson("OK"))

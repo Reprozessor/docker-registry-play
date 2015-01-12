@@ -7,6 +7,7 @@ PUT /v1/repositories/*repo/tags/:tag controllers.RegistryController.putTag(repo,
 PUT /v1/repositories/*repo/          controllers.RegistryController.putRepo(repo)
 GET /v1/images/:image/json           controllers.RegistryController.getImageJson(image)
 PUT /v1/images/:image/json           controllers.RegistryController.putImageJson(image)
+GET /v1/images/:image/layer          controllers.RegistryController.getImageLayer(image)
 PUT /v1/images/:image/layer          controllers.RegistryController.putImageLayer(image)
 PUT /v1/images/:image/checksum       controllers.RegistryController.putImageChecksum(image)
 GET /v1/images/:image/ancestry       controllers.RegistryController.getImageAncestry(image)

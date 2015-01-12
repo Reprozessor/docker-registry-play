@@ -36,6 +36,10 @@ class RegistryControllerTest extends Specification {
       val res = route(FakeRequest(GET, "/v1/images/NONEXISTING/ancestry")).get
       status(res) must_== 404
     }
+    "fail on getting layer for non-existing image" in new WithApplication {
+      val res = route(FakeRequest(GET, "/v1/images/NONEXISTING/layer")).get
+      status(res) must_== 404
+    }
   }
 
 }
