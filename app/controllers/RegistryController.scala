@@ -1,15 +1,13 @@
 package controllers
 
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json._
 import play.api.mvc._
-import scala.collection.JavaConverters._
 
 import scala.language.reflectiveCalls
-import scala.util.{Failure, Success, Try}
+import scala.io._
 
 import java.nio.file.{Path, Paths, Files, StandardOpenOption}
-import java.nio.charset.{StandardCharsets}
+import java.nio.charset.StandardCharsets
 
 object DockerHeaders {
   val REGISTRY_VERSION    = "X-Docker-Registry-Version"
@@ -18,6 +16,11 @@ object DockerHeaders {
   val ENDPOINTS           = "X-Docker-Endpoints"
 }
 import DockerHeaders._
+
+object CustomTypes {
+  type ImageName = String
+}
+import CustomTypes._
 
 case class ImgData(id: String, checksum: String)
 //implicit val imgDataWrites = new Writes[ImgData]
@@ -29,6 +32,9 @@ object RegistryController extends Controller {
   val repoPath = dataPath.resolve("repositories")
   val JSON_SUFFIX = ".json"
 
+  private def fileNameWithoutSuffix(filename: String, suffix: String = JSON_SUFFIX) =
+    filename.substring(0, filename.length - suffix.length)
+
   def root() = Action {
     Ok(Json.toJson("Docker Registry"))
   }
@@ -39,18 +45,25 @@ object RegistryController extends Controller {
 
   def images(repo: String) = Action {
     Files.createDirectories(imagesPath)
-    val files = imagesPath.toFile.list().filter(_.endsWith(JSON_SUFFIX))
-    Ok(Json.toJson(files.map( (fn) => {Json.obj("id" -> fn.substring(0, fn.length - JSON_SUFFIX.length),  "checksum" -> "foobar")} )))
+    val files = imagesPath.toFile.list.filter(_.endsWith(JSON_SUFFIX))
+    Ok(Json.toJson(files map { fn => Json.obj("id" -> fileNameWithoutSuffix(fn), "checksum" -> "foobar") }))
   }
 
+
   def getTags(repo: String) = Action {
-    val tagsPath = repoPath.resolve(s"${repo}/tags")
+    val tagsPath: Path = repoPath.resolve(s"${repo}/tags")
     if (Files.exists(tagsPath)) {
-      val files = tagsPath.toFile.list().filter(_.endsWith(JSON_SUFFIX))
-      Ok(Json.toJson(files.map( (fn) => {
-          val contents = Files.readAllLines(tagsPath.resolve(fn), StandardCharsets.UTF_8).asScala.mkString
-          Json.obj(fn.substring(0, fn.length - JSON_SUFFIX.length) -> Json.parse(contents))
-        } ).reduce(_ ++ _)))
+      val files: Array[String] = tagsPath.toFile.list().filter(_.endsWith(JSON_SUFFIX))
+      Ok(
+        Json.toJson(
+          files.map { fn =>
+            assert(implicitly[scala.io.Codec] == scala.io.Codec.UTF8)
+            val contents = Source.fromFile(tagsPath.resolve(fn).toFile).mkString
+            val name = fn.substring(0, fn.length - JSON_SUFFIX.length)
+            name -> Json.parse(contents)
+          }.toMap
+        )
+      )
     } else {
       NotFound(Json.toJson(s"Repository ${repo} does not exist"))
     }
@@ -63,24 +76,24 @@ object RegistryController extends Controller {
   }
 
   def putRepo(repo: String) = Action {request =>
-    val host: String = request.headers.get("Host").getOrElse("")
-      Ok(Json.toJson("PUTPUT"))
+    val host = request.headers.get("Host").getOrElse("")
+    Ok(Json.toJson("PUTPUT"))
       .withHeaders(TOKEN -> "mytok")
       .withHeaders(ENDPOINTS -> host)
   }
 
-  def getImageJson(image: String) = Action {
+  def getImageJson(image: ImageName) = Action {
     val imagePath = imagesPath.resolve(s"${image}.json")
     val layerPath = imagesPath.resolve(s"${image}.layer")
     if (Files.exists(imagePath) && Files.exists(layerPath)) {
-      val contents = Files.readAllLines(imagePath, StandardCharsets.UTF_8).asScala.mkString
+      val contents = Source.fromFile(imagePath.toFile).mkString
       Ok(Json.parse(contents))
     } else {
       NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
     }
   }
 
-  def getAncestry(image: String): Option[List[String]] = {
+  def getAncestry(image: String, r: Seq[String] = Seq.empty): Option[List[String]] = {
     var ancestry = List(image)
     var cur = image
     while (true) {
@@ -88,25 +101,41 @@ object RegistryController extends Controller {
       if (!Files.exists(imagePath)) {
         return None
       }
-      val contents = Files.readAllLines(imagePath, StandardCharsets.UTF_8).asScala.mkString
+      val contents = Source.fromFile(imagePath.toFile).mkString
       val data = Json.parse(contents)
-      val opt = (data \ "parent").asOpt[String]
-      if (opt.isEmpty) {
-        return Some(ancestry)
-      } else {
-        cur = opt.get
-        ancestry :+= cur
+      (data \ "parent").asOpt[String] match {
+        case Some(parent) =>
+          cur = parent
+          ancestry :+= cur
+        case None =>
+          return Some(ancestry)
       }
     }
-    return Some(ancestry)
+    Some(ancestry)
+  }
+
+  /* not implemented yet */
+  private case class Image(name: ImageName) {
+    val path: Option[Path] = {
+      val jsonPath = imagesPath.resolve(s"${name}.json")
+      Some(jsonPath).filter( Files.exists(_) )
+    }
+
+    val parent: Option[Image] = {
+      path
+        .map { p =>
+          val contents = Source.fromFile(p.toFile).mkString
+          val data = Json.parse(contents)
+          (data \ "parent").asOpt[ImageName].map( Image(_) )
+        }
+        .flatten
+    }
   }
 
   def getImageAncestry(image: String) = Action {
-    val ancestry = getAncestry(image)
-    if (ancestry.isEmpty) {
-      NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
-    } else {
-      Ok(Json.toJson(ancestry))
+    getAncestry(image) match {
+      case Some(ancestry) => Ok(Json.toJson(ancestry))
+      case None => NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
     }
   }
 
