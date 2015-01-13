@@ -27,6 +27,8 @@ case class ImgData(id: String, checksum: String)
 
 object RegistryController extends Controller {
 
+  implicit val fileCodec = scala.io.Codec.UTF8
+
   val dataPath = Paths.get("data")
   val imagesPath = dataPath.resolve("images")
   val repoPath = dataPath.resolve("repositories")
