@@ -15,3 +15,5 @@ notifications:
     email:
         - valentine.gogichashvili@zalando.de
         - henning.jacobs@zalando.de
+
+after_success: sbt coveralls
