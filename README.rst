@@ -1,5 +1,10 @@
 .. image:: https://travis-ci.org/zalando/docker-registry-play.svg
-    :target: https://travis-ci.org/zalando/docker-registry-play
+   :target: https://travis-ci.org/zalando/docker-registry-play
+   :alt: Build status
+
+.. image:: https://coveralls.io/repos/zalando/docker-registry-play/badge.svg?branch=master
+   :target: https://coveralls.io/r/zalando/docker-registry-play?branch=master
+   :alt: Coverage status
 
 ====================
 Play Docker Registry
