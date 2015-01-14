@@ -73,6 +73,10 @@ class RegistryControllerTest extends Specification {
         case other => sys.error(s"Unexpected result type: $other")
       }
     }
+    "fail on getting tags for non-existing repository" in new WithTestApplication {
+      val res = route(FakeRequest(GET, "/v1/repositories/NON/EXISTING/tags")).get
+      status(res) must_== 404
+    }
     "fail on getting JSON image for non-existing image" in new WithTestApplication {
       val res = route(FakeRequest(GET, "/v1/images/NONEXISTING/json")).get
       status(res) must_== 404
