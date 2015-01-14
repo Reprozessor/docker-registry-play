@@ -21,15 +21,13 @@ object CustomTypes {
   type ImageName = String
 }
 import CustomTypes._
-
-case class ImgData(id: String, checksum: String)
-//implicit val imgDataWrites = new Writes[ImgData]
+import play.api.Play.{current => app}
 
 object RegistryController extends Controller {
 
   implicit val fileCodec = scala.io.Codec.UTF8
 
-  val dataPath = Paths.get("data")
+  val dataPath = Paths.get(app.configuration.getString("registry.data.path").getOrElse("data"))
   val imagesPath = dataPath.resolve("images")
   val repoPath = dataPath.resolve("repositories")
   val JSON_SUFFIX = ".json"
