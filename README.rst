@@ -32,3 +32,11 @@ Try to pull the same Docker image again (will not do anything as you already hav
 
     $ docker pull localhost:9000/test/busybox:1.0
 
+How to build and run the Docker image
+=====================================
+
+.. code-block:: bash
+
+    $ sbt universal:package-zip-tarball
+    $ docker build -t docker-registry-play .
+    $ docker run -p 9000:9000 docker-registry-play
