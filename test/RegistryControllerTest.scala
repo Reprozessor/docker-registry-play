@@ -41,11 +41,11 @@ abstract class WithTestApplication(
 extends WithApplication {
   override def around[T: AsResult](t: => T): Result = super.around {
     val result = t
-    cleanupData
+    cleanupData()
     result
   }
 
-  def cleanupData = {
+  def cleanupData(): Unit = {
     val path = new File(app.configuration.getString("registry.data.path").get)
     Utils.delete(path)
   }

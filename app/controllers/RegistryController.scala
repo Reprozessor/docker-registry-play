@@ -10,16 +10,18 @@ import java.nio.file.{Path, Paths, Files, StandardOpenOption}
 import java.nio.charset.StandardCharsets
 
 object DockerHeaders {
-  val REGISTRY_VERSION    = "X-Docker-Registry-Version"
+  val REGISTRY_VERSION = "X-Docker-Registry-Version"
   val REGISTRY_STANDALONE = "X-Docker-Registry-Standalone"
-  val TOKEN               = "X-Docker-Token"
-  val ENDPOINTS           = "X-Docker-Endpoints"
+  val TOKEN = "X-Docker-Token"
+  val ENDPOINTS = "X-Docker-Endpoints"
 }
+
 import DockerHeaders._
 
 object CustomTypes {
   type ImageName = String
 }
+
 import CustomTypes._
 import play.api.Play.{current => app}
 
@@ -46,15 +48,15 @@ object RegistryController extends Controller {
   def images(repo: String) = Action {
     Files.createDirectories(imagesPath)
     val files = imagesPath.toFile.list.filter(_.endsWith(JSON_SUFFIX))
-    Ok(Json.toJson(files map { fn => Json.obj("id" -> fileNameWithoutSuffix(fn), "checksum" -> "foobar") }))
+    Ok(Json.toJson(files map { fn => Json.obj("id" -> fileNameWithoutSuffix(fn), "checksum" -> "foobar")}))
   }
 
 
   def getTags(repo: String) = Action {
-    val tagsPath: Path = repoPath.resolve(s"${repo}/tags")
+    val tagsPath: Path = repoPath.resolve(s"$repo/tags")
     if (Files.exists(tagsPath)) {
       val files: Array[String] = tagsPath.toFile.list().filter(_.endsWith(JSON_SUFFIX))
-      Ok(
+      Ok {
         Json.toJson(
           files.map { fn =>
             assert(implicitly[scala.io.Codec] == scala.io.Codec.UTF8)
@@ -63,10 +65,8 @@ object RegistryController extends Controller {
             name -> Json.parse(contents)
           }.toMap
         )
-      )
-    } else {
-      NotFound(Json.toJson(s"Repository ${repo} does not exist"))
-    }
+      }
+    } else NotFound(Json.toJson(s"Repository $repo does not exist"))
   }
 
   def putImages(repo: String) = Action {
@@ -75,7 +75,7 @@ object RegistryController extends Controller {
     Status(204)("")
   }
 
-  def putRepo(repo: String) = Action {request =>
+  def putRepo(repo: String) = Action { request =>
     val host = request.headers.get("Host").getOrElse("")
     Ok(Json.toJson("PUTPUT"))
       .withHeaders(TOKEN -> "mytok")
@@ -83,13 +83,13 @@ object RegistryController extends Controller {
   }
 
   def getImageJson(image: ImageName) = Action {
-    val imagePath = imagesPath.resolve(s"${image}.json")
-    val layerPath = imagesPath.resolve(s"${image}.layer")
+    val imagePath = imagesPath.resolve(s"$image.json")
+    val layerPath = imagesPath.resolve(s"$image.layer")
     if (Files.exists(imagePath) && Files.exists(layerPath)) {
       val contents = Source.fromFile(imagePath.toFile).mkString
       Ok(Json.parse(contents))
     } else {
-      NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
+      NotFound(Json.toJson(s"Image JSON ($image.json) not found"))
     }
   }
 
@@ -97,7 +97,7 @@ object RegistryController extends Controller {
     var ancestry = List(image)
     var cur = image
     while (true) {
-      val imagePath = imagesPath.resolve(s"${cur}.json")
+      val imagePath = imagesPath.resolve(s"$cur.json")
       if (!Files.exists(imagePath)) {
         return None
       }
@@ -117,17 +117,17 @@ object RegistryController extends Controller {
   /* not implemented yet */
   private case class Image(name: ImageName) {
     val path: Option[Path] = {
-      val jsonPath = imagesPath.resolve(s"${name}.json")
-      Some(jsonPath).filter( Files.exists(_) )
+      val jsonPath = imagesPath.resolve(s"$name.json")
+      Some(jsonPath).filter(Files.exists(_))
     }
 
     val parent: Option[Image] = {
       path
         .map { p =>
-          val contents = Source.fromFile(p.toFile).mkString
-          val data = Json.parse(contents)
-          (data \ "parent").asOpt[ImageName].map( Image(_) )
-        }
+        val contents = Source.fromFile(p.toFile).mkString
+        val data = Json.parse(contents)
+        (data \ "parent").asOpt[ImageName].map(Image)
+      }
         .flatten
     }
   }
@@ -135,7 +135,7 @@ object RegistryController extends Controller {
   def getImageAncestry(image: String) = Action {
     getAncestry(image) match {
       case Some(ancestry) => Ok(Json.toJson(ancestry))
-      case None => NotFound(Json.toJson(s"Image JSON (${image}.json) not found"))
+      case None => NotFound(Json.toJson(s"Image JSON ($image.json) not found"))
     }
   }
 
@@ -143,18 +143,18 @@ object RegistryController extends Controller {
     Files.createDirectories(imagesPath)
     val contents: String = Json.stringify(request.body)
 
-    Files.write(imagesPath.resolve(s"${image}.json"), contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
+    Files.write(imagesPath.resolve(s"$image.json"), contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
     Ok(Json.toJson("OK"))
   }
 
   def putImageLayer(image: String) = Action(BodyParsers.parse.temporaryFile) { request =>
-    val layerPath = imagesPath.resolve(s"${image}.layer")
+    val layerPath = imagesPath.resolve(s"$image.layer")
     val bodyData = request.body.moveTo(layerPath.toFile)
     Ok(Json.toJson("OK"))
   }
 
   def getImageLayer(image: String) = Action {
-    val layerPath = imagesPath.resolve(s"${image}.layer")
+    val layerPath = imagesPath.resolve(s"$image.layer")
     if (Files.exists(layerPath)) {
       Ok.sendFile(layerPath.toFile)
     } else {
@@ -167,8 +167,8 @@ object RegistryController extends Controller {
     Ok(Json.toJson("OK"))
   }
 
-  def putTag(repo: String, tag:String) = Action(BodyParsers.parse.json) { request =>
-    val tagPath = repoPath.resolve(s"${repo}/tags/${tag}.json")
+  def putTag(repo: String, tag: String) = Action(BodyParsers.parse.json) { request =>
+    val tagPath = repoPath.resolve(s"$repo/tags/$tag.json")
     Files.createDirectories(tagPath.getParent)
     val contents: String = Json.stringify(request.body)
     Files.write(tagPath, contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
