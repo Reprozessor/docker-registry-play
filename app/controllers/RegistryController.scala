@@ -149,7 +149,7 @@ object RegistryController extends Controller {
 
   def putImageLayer(image: String) = Action(BodyParsers.parse.temporaryFile) { request =>
     val layerPath = imagesPath.resolve(s"$image.layer")
-    val bodyData = request.body.moveTo(layerPath.toFile)
+    request.body.moveTo(layerPath.toFile)
     Ok(Json.toJson("OK"))
   }
 
