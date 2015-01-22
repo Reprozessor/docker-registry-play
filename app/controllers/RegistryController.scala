@@ -54,7 +54,6 @@ object RegistryController extends Controller {
     Ok(Json.toJson(files map { fn => Json.obj("id" -> fileNameWithoutSuffix(fn), "checksum" -> "foobar")}))
   }
 
-
   def getTags(repo: String) = Action {
     val tagsPath: Path = repoPath.resolve(s"$repo/tags")
     if (Files.exists(tagsPath)) {
@@ -79,10 +78,13 @@ object RegistryController extends Controller {
   }
 
   def putRepo(repo: String) = Action { request =>
-    val host = request.headers.get("Host").getOrElse("")
-    Ok(Json.toJson("PUTPUT"))
+    val hostHeader = request.headers.get("Host")
+    val result = for {
+      host <- hostHeader
+    } yield Ok(Json.toJson("PUTPUT"))
       .withHeaders(TOKEN -> "mytok")
       .withHeaders(ENDPOINTS -> host)
+    result.getOrElse(BadRequest("Host header missing"))
   }
 
   def getImageJson(image: ImageName) = Action {
@@ -97,6 +99,12 @@ object RegistryController extends Controller {
   }
 
   def getAncestry(image: String, r: Seq[String] = Seq.empty): Option[List[String]] = {
+
+    //val imagePath = imagesPath.resolve(s"$image.json")
+
+    //if (!Files.exists(imagePath)) {
+
+
     var ancestry = List(image)
     var cur = image
     while (true) {
@@ -115,24 +123,6 @@ object RegistryController extends Controller {
       }
     }
     Some(ancestry)
-  }
-
-  /* not implemented yet */
-  private case class Image(name: ImageName) {
-    val path: Option[Path] = {
-      val jsonPath = imagesPath.resolve(s"$name.json")
-      Some(jsonPath).filter(Files.exists(_))
-    }
-
-    val parent: Option[Image] = {
-      path
-        .map { p =>
-        val contents = Source.fromFile(p.toFile).mkString
-        val data = Json.parse(contents)
-        (data \ "parent").asOpt[ImageName].map(Image)
-      }
-        .flatten
-    }
   }
 
   def getImageAncestry(image: String) = Action {
