@@ -1,3 +1,5 @@
+import com.typesafe.sbt.SbtNativePackager.NativePackagerKeys._
+
 name := "docker-registry-play"
 
 scalaVersion := "2.11.4"
@@ -25,4 +27,8 @@ coverageExcludedPackages := "<empty>;Reverse.*;views.json..*"
 coverageMinimum := 30
 coverageFailOnMinimum := true
 
+// Docker
+maintainer in Docker := "Henning Jacobs <henning.jacobs@zalando.de>"
 
+dockerBaseImage in Docker := "zalando/openjdk:8u40-b09-2"
+dockerExposedPorts in Docker := Seq(9000)

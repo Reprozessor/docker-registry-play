@@ -37,6 +37,5 @@ How to build and run the Docker image
 
 .. code-block:: bash
 
-    $ sbt universal:package-zip-tarball
-    $ docker build -t docker-registry-play .
-    $ docker run -p 9000:9000 docker-registry-play
+    $ sbt docker:publishLocal
+    $ docker run -p 9000:9000 docker-registry-play:0.1-SNAPSHOT
