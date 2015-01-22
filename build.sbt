@@ -9,7 +9,8 @@ libraryDependencies ++= Seq(
   jdbc,
   "com.jsuereth" % "scala-arm_2.11" % "1.4",
   "com.gilt" %% "play-json-service-lib-2-3" % "1.0.0",
-  "org.specs2" %% "specs2" % "2.3.11" % "test"
+  "org.specs2" %% "specs2" % "2.3.11" % "test",
+  "com.wordnik" %% "swagger-play2" % "1.3.12"
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)

@@ -1,5 +1,6 @@
 package controllers
 
+import com.wordnik.swagger.annotations.{ApiOperation, Api}
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -25,6 +26,7 @@ object CustomTypes {
 import CustomTypes._
 import play.api.Play.{current => app}
 
+@Api(value = "/registry")
 object RegistryController extends Controller {
 
   implicit val fileCodec = scala.io.Codec.UTF8
@@ -41,11 +43,12 @@ object RegistryController extends Controller {
     Ok(Json.toJson("Docker Registry"))
   }
 
+  @ApiOperation(value="Ping")
   def _ping() = Action {
     Ok(Json.toJson(true)).withHeaders(REGISTRY_VERSION -> "0.6.3")
   }
 
-  def images(repo: String) = Action {
+  def getImages(repo: String) = Action {
     Files.createDirectories(imagesPath)
     val files = imagesPath.toFile.list.filter(_.endsWith(JSON_SUFFIX))
     Ok(Json.toJson(files map { fn => Json.obj("id" -> fileNameWithoutSuffix(fn), "checksum" -> "foobar")}))

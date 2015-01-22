@@ -1,6 +1,6 @@
 GET /                                controllers.RegistryController.root()
 GET /v1/_ping                        controllers.RegistryController._ping()
-GET /v1/repositories/*repo/images    controllers.RegistryController.images(repo)
+GET /v1/repositories/*repo/images    controllers.RegistryController.getImages(repo)
 PUT /v1/repositories/*repo/images    controllers.RegistryController.putImages(repo)
 GET /v1/repositories/*repo/tags      controllers.RegistryController.getTags(repo)
 PUT /v1/repositories/*repo/tags/:tag controllers.RegistryController.putTag(repo, tag)
@@ -11,3 +11,6 @@ GET /v1/images/:image/layer          controllers.RegistryController.getImageLaye
 PUT /v1/images/:image/layer          controllers.RegistryController.putImageLayer(image)
 PUT /v1/images/:image/checksum       controllers.RegistryController.putImageChecksum(image)
 GET /v1/images/:image/ancestry       controllers.RegistryController.getImageAncestry(image)
+
+GET /api-docs.json                   controllers.ApiHelpController.getResources
+GET /api-docs.json/registry          controllers.ApiHelpController.getResource(path="/registry")
