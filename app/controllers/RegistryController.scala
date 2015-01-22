@@ -98,31 +98,20 @@ object RegistryController extends Controller {
     }
   }
 
-  def getAncestry(image: String, r: Seq[String] = Seq.empty): Option[List[String]] = {
-
-    //val imagePath = imagesPath.resolve(s"$image.json")
-
-    //if (!Files.exists(imagePath)) {
-
-
-    var ancestry = List(image)
-    var cur = image
-    while (true) {
-      val imagePath = imagesPath.resolve(s"$cur.json")
-      if (!Files.exists(imagePath)) {
-        return None
-      }
-      val contents = Source.fromFile(imagePath.toFile).mkString
-      val data = Json.parse(contents)
-      (data \ "parent").asOpt[String] match {
-        case Some(parent) =>
-          cur = parent
-          ancestry :+= cur
-        case None =>
-          return Some(ancestry)
-      }
+  def getAncestry(image: String, ancestry: Seq[String] = Nil): Option[Seq[String]] = {
+    val imagePath = imagesPath.resolve(s"$image.json")
+    if (!Files.exists(imagePath)) {
+      return None
     }
-    Some(ancestry)
+    val newAncestry = ancestry :+ image
+    val contents = Source.fromFile(imagePath.toFile).mkString
+    val data = Json.parse(contents)
+    (data \ "parent").asOpt[String] match {
+      case Some(parent) =>
+        getAncestry(parent, newAncestry)
+      case None =>
+        Some(newAncestry)
+    }
   }
 
   def getImageAncestry(image: String) = Action {
