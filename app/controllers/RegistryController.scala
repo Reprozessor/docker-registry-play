@@ -4,6 +4,7 @@ import com.wordnik.swagger.annotations.{ApiOperation, Api}
 import play.api.libs.json._
 import play.api.mvc._
 
+import scala.annotation.tailrec
 import scala.language.reflectiveCalls
 import scala.io._
 
@@ -98,20 +99,20 @@ object RegistryController extends Controller {
     }
   }
 
+  @tailrec
   def getAncestry(image: String, ancestry: Seq[String] = Nil): Option[Seq[String]] = {
     val imagePath = imagesPath.resolve(s"$image.json")
-    if (!Files.exists(imagePath)) {
-      return None
-    }
-    val newAncestry = ancestry :+ image
-    val contents = Source.fromFile(imagePath.toFile).mkString
-    val data = Json.parse(contents)
-    (data \ "parent").asOpt[String] match {
-      case Some(parent) =>
-        getAncestry(parent, newAncestry)
-      case None =>
-        Some(newAncestry)
-    }
+    if (Files.exists(imagePath)) {
+      val newAncestry = ancestry :+ image
+      val contents = Source.fromFile(imagePath.toFile).mkString
+      val data = Json.parse(contents)
+      (data \ "parent").asOpt[String] match {
+        case Some(parent) =>
+          getAncestry(parent, newAncestry)
+        case None =>
+          Some(newAncestry)
+      }
+    } else None
   }
 
   def getImageAncestry(image: String) = Action {
