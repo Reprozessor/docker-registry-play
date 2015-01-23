@@ -1,4 +1,5 @@
-GET /                                controllers.RegistryController.root()
+GET /                                controllers.HomeController.index()
+
 GET /v1/_ping                        controllers.RegistryController._ping()
 GET /v1/repositories/*repo/images    controllers.RegistryController.getImages(repo)
 PUT /v1/repositories/*repo/images    controllers.RegistryController.putImages(repo)
@@ -13,5 +14,8 @@ PUT /v1/images/:image/checksum       controllers.RegistryController.putImageChec
 GET /v1/images/:image/ancestry       controllers.RegistryController.getImageAncestry(image)
 GET /v1/search                       controllers.RegistryController.search(q: String ?= "")
 
-GET /api-docs.json                   controllers.ApiHelpController.getResources
-GET /api-docs.json/registry          controllers.ApiHelpController.getResource(path="/registry")
+GET /swagger.json                    controllers.ApiHelpController.getResources
+GET /swagger.json/registry           controllers.ApiHelpController.getResource(path="/registry")
+OPTIONS /*wholepath                  controllers.HomeController.getOptions(wholepath)
+
+GET /webjars/*file                   controllers.WebJarAssets.at(file)

@@ -9,7 +9,9 @@ parallelExecution in Test := true
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "2.3.11" % "test",
-  "com.wordnik" %% "swagger-play2" % "1.3.12"
+  "com.wordnik" %% "swagger-play2" % "1.3.12",
+  "org.webjars" %% "webjars-play" % "2.3.0-2",
+  "org.webjars" % "swagger-ui" % "2.1.0-alpha.6"
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)

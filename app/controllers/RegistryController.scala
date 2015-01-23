@@ -40,21 +40,19 @@ object RegistryController extends Controller {
   private def fileNameWithoutSuffix(filename: String, suffix: String = JSON_SUFFIX) =
     filename.substring(0, filename.length - suffix.length)
 
-  def root() = Action {
-    Ok(Json.toJson("Docker Registry"))
-  }
-
   @ApiOperation(value="Ping")
   def _ping() = Action {
     Ok(Json.toJson(true)).withHeaders(REGISTRY_VERSION -> "0.6.3")
   }
 
+  @ApiOperation(value="Get Images")
   def getImages(repo: String) = Action {
     Files.createDirectories(imagesPath)
     val files = imagesPath.toFile.list.filter(_.endsWith(JSON_SUFFIX))
     Ok(Json.toJson(files map { fn => Json.obj("id" -> fileNameWithoutSuffix(fn), "checksum" -> "foobar")}))
   }
 
+  @ApiOperation(value="Get Tags")
   def getTags(repo: String) = Action {
     val tagsPath: Path = repoPath.resolve(s"$repo/tags")
     if (Files.exists(tagsPath)) {
@@ -72,12 +70,14 @@ object RegistryController extends Controller {
     } else NotFound(Json.toJson(s"Repository $repo does not exist"))
   }
 
+  @ApiOperation(value="Put Images")
   def putImages(repo: String) = Action {
     // this is the final call from Docker client when pushing an image
     // Docker client expects HTTP status code 204 (No Content) instead of 200 here!
     Status(204)("")
   }
 
+  @ApiOperation(value="Put Repo")
   def putRepo(repo: String) = Action { request =>
     val hostHeader = request.headers.get("Host")
     val result = for {
@@ -158,6 +158,7 @@ object RegistryController extends Controller {
     Ok(Json.toJson("OK"))
   }
 
+  @ApiOperation("Search")
   def search(q: String) = Action {
     NotImplemented
   }
