@@ -157,5 +157,9 @@ object RegistryController extends Controller {
     Files.write(tagPath, contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE)
     Ok(Json.toJson("OK"))
   }
+
+  def search(q: String) = Action {
+    NotImplemented
+  }
 }
 

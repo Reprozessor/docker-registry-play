@@ -11,6 +11,7 @@ GET /v1/images/:image/layer          controllers.RegistryController.getImageLaye
 PUT /v1/images/:image/layer          controllers.RegistryController.putImageLayer(image)
 PUT /v1/images/:image/checksum       controllers.RegistryController.putImageChecksum(image)
 GET /v1/images/:image/ancestry       controllers.RegistryController.getImageAncestry(image)
+GET /v1/search                       controllers.RegistryController.search(q: String ?= "")
 
 GET /api-docs.json                   controllers.ApiHelpController.getResources
 GET /api-docs.json/registry          controllers.ApiHelpController.getResource(path="/registry")
