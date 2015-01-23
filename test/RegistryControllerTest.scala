@@ -131,6 +131,9 @@ class RegistryControllerTest extends Specification {
       res = route(FakeRequest(GET, s"/v1/images/${layers.last._1}/ancestry")).get
       status(res) must be equalTo OK
       contentAsJson(res) must be equalTo JsArray(layers.map{x => JsString(x._1)}.reverse )
+
+      res = route(FakeRequest(GET, s"/v1/search?q=")).get
+      status(res) must be equalTo OK
     }
   }
 }

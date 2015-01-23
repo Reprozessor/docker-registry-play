@@ -1,8 +1,15 @@
 package controllers
 
+import java.io.File
+import java.util
+import java.util.function.IntFunction
+import scala.util.matching.Regex
+
 import com.wordnik.swagger.annotations.{ApiOperation, Api}
 import play.api.libs.json._
 import play.api.mvc._
+
+import play.api.Logger
 
 import scala.annotation.tailrec
 import scala.language.reflectiveCalls
@@ -27,7 +34,7 @@ object CustomTypes {
 import CustomTypes._
 import play.api.Play.{current => app}
 
-@Api(value = "/registry")
+@Api(value = "/registry", description = "Docker registry API")
 object RegistryController extends Controller {
 
   implicit val fileCodec = scala.io.Codec.UTF8
@@ -158,9 +165,33 @@ object RegistryController extends Controller {
     Ok(Json.toJson("OK"))
   }
 
+  def recursiveListFiles(f: File, r: Regex, maxDepth: Int, depth: Int = 1): Array[File] = {
+    val theseOpt = Option(f.listFiles)
+    theseOpt match {
+      case Some(these) => {
+        val good = these.filter(f => r.findFirstIn(f.getName).isDefined)
+        if (depth < maxDepth)
+          good ++ these.filter(_.isDirectory).flatMap(recursiveListFiles(_, r, maxDepth, depth + 1))
+        else
+          good
+      }
+      case None => Array.empty[File]
+    }
+  }
+
   @ApiOperation("Search")
   def search(q: String) = Action {
-    NotImplemented
+    val root = repoPath.toAbsolutePath.toFile
+    val files = recursiveListFiles(root, s"${Regex.quote(q)}".r, 2)
+
+    // TODO: only list valid repos
+    val results = files.map(file => repoPath.toAbsolutePath.relativize(file.toPath)).map(path => Json.obj("name" -> JsString(path.toString)))
+
+    // TODO: add result count
+    Ok(Json.obj(
+      "query" -> q,
+      "results" -> JsArray(results))
+    )
   }
 }
 
