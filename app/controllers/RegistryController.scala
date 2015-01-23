@@ -184,11 +184,14 @@ object RegistryController extends Controller {
     val root = repoPath.toAbsolutePath.toFile
     val files = recursiveListFiles(root, s"${Regex.quote(q)}".r, 2)
 
-    // TODO: only list valid repos
-    val results = files.map(file => repoPath.toAbsolutePath.relativize(file.toPath)).map(path => Json.obj("name" -> JsString(path.toString)))
+    val results = files
+      .map(file => repoPath.toAbsolutePath.relativize(file.toPath))
+      // a valid repo must have 2 components (e.g. "test/repo")
+      .filter(_.getNameCount > 1)
+      .map(path => Json.obj("name" -> JsString(path.toString)))
 
-    // TODO: add result count
     Ok(Json.obj(
+      "num_results" -> results.length,
       "query" -> q,
       "results" -> JsArray(results))
     )
