@@ -2,7 +2,7 @@ import com.typesafe.sbt.SbtNativePackager.NativePackagerKeys._
 
 name := "docker-registry-play"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 scalacOptions ++= Seq("-feature", "-deprecation")
 
 parallelExecution in Test := true
