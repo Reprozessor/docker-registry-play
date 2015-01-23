@@ -39,3 +39,11 @@ How to build and run the Docker image
 
     $ sbt docker:publishLocal
     $ docker run -p 9000:9000 docker-registry-play:0.1-SNAPSHOT
+
+ToDos
+=====
+
+* Implement authentication (``docker login``) with plan password and LDAP
+* Implement search endpoint (/v1/search?q=)
+* Implement checksums
+* Implement authorization (e.g. users can only push to their own repos)
